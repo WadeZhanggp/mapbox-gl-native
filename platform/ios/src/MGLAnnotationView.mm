@@ -39,7 +39,7 @@
 
 - (void)setCenter:(CGPoint)center
 {
-    [self setCenter:center pitch:0];
+    [self setCenter:center pitch:-1];
 }
 
 - (void)setCenter:(CGPoint)center pitch:(CGFloat)pitch
@@ -49,7 +49,7 @@
     
     [super setCenter:center];
     
-    if (self.flat)
+    if (pitch >= 0 && self.flat)
     {
         [self updatePitch:pitch];
     }
