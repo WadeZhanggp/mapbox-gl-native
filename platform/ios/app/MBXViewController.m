@@ -589,7 +589,7 @@ static NSString * const MBXViewControllerAnnotationViewReuseIdentifer = @"MBXVie
        
         // uncomment to lay the annotation view flat against the map when the map is tilted
         // this currently causes severe performance issues when more than 2k annotations are visible
-//        annotationView.freeAxes = MGLAnnotationViewBillboardAxisY;
+//        annotationView.freeAxes = MGLAnnotationViewBillboardAxisX;
        
         // uncomment to force annotation view to maintain a constant size when the map is tilted
         // by default, annotation views will shrink and grow as the move towards and away from the
