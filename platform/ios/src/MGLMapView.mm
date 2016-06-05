@@ -1782,12 +1782,19 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
             
             MGLAnnotationContext &annotationContext = _annotationContextsByAnnotationTag.at(annotationTag);
             NSString *symbolName;
-            if (!annotationContext.annotationView)
+            if (annotationContext.annotationView)
+            {
+                // Redundantly move the associated annotation view outside the scope of the animation-less transaction block in -updateAnnotationViews.
+                CGPoint center = [self convertCoordinate:annotationContext.annotation.coordinate toPointToView:self];
+                [annotationContext.annotationView setCenter:center pitch:self.camera.pitch];
+            }
+            else
             {
                 MGLAnnotationImage *annotationImage = [self imageOfAnnotationWithTag:annotationTag];
                 symbolName = annotationImage.styleIconIdentifier;
             }
             
+            // Update the annotation’s backing geometry to match the annotation model object. Any associated annotation view is also moved by side effect. However, -updateAnnotationViews disables the view’s animation actions, because it can’t distinguish between moves due to the viewport changing and moves due to the annotation’s coordinate changing.
             _mbglMap->updateAnnotation(annotationTag, mbgl::SymbolAnnotation { point, symbolName.UTF8String ?: "" });
             if (annotationTag == _selectedAnnotationTag)
             {
@@ -4474,6 +4481,9 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
         return;
     }
     
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    
     for (auto &pair : _annotationContextsByAnnotationTag)
     {
         CGRect viewPort = CGRectInset(self.bounds, -_largestAnnotationViewSize.width - MGLAnnotationUpdateViewportOutset.width, -_largestAnnotationViewSize.height - MGLAnnotationUpdateViewportOutset.width);
@@ -4510,6 +4520,8 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
             [annotationView setCenter:center pitch:self.camera.pitch];
         }
     }
+    
+    [CATransaction commit];
 }
 
 - (void)enqueueAnnotationViewForAnnotationContext:(MGLAnnotationContext &)annotationContext
