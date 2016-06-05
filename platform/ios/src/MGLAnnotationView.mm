@@ -45,25 +45,25 @@
     super.center = center;
 }
 
-- (void)setCenter:(CGPoint)center pitch:(CGFloat)pitch
+- (void)setCenter:(CGPoint)center direction:(CLLocationDirection)direction pitch:(CGFloat)pitch
 {
     self.center = center;
     
-    if (pitch >= 0 && self.flat)
+    CATransform3D t = CATransform3DIdentity;
+    if (pitch >= 0 && (self.freeAxes & MGLAnnotationViewBillboardAxisX))
     {
-        [self updatePitch:pitch];
+        t = CATransform3DRotate(t, MGLRadiansFromDegrees(pitch), 1.0, 0, 0);
     }
+    if (direction >= 0 && (self.freeAxes & MGLAnnotationViewBillboardAxisY))
+    {
+        t = CATransform3DRotate(t, MGLRadiansFromDegrees(-direction), 0.0, 0.0, 1.0);
+    }
+    self.layer.transform = t;
   
     if (self.scalesWithViewingDistance)
     {
         [self updateScaleForPitch:pitch];
     }
-}
-
-- (void)updatePitch:(CGFloat)pitch
-{
-    CATransform3D t = CATransform3DRotate(CATransform3DIdentity, MGLRadiansFromDegrees(pitch), 1.0, 0, 0);
-    self.layer.transform = t;
 }
 
 - (void)updateScaleForPitch:(CGFloat)pitch
@@ -90,8 +90,7 @@
         // reduction is then normalized for a scale of 1.0.
         CGFloat pitchAdjustedScale = 1.0 - maxScaleReduction * pitchIntensity;
         
-        CATransform3D transform = self.flat ? self.layer.transform : CATransform3DIdentity;
-        self.layer.transform = CATransform3DScale(transform, pitchAdjustedScale, pitchAdjustedScale, 1);
+        self.layer.transform = CATransform3DScale(self.layer.transform, pitchAdjustedScale, pitchAdjustedScale, 1);
     }
 }
 

@@ -1786,7 +1786,7 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
             {
                 // Redundantly move the associated annotation view outside the scope of the animation-less transaction block in -updateAnnotationViews.
                 CGPoint center = [self convertCoordinate:annotationContext.annotation.coordinate toPointToView:self];
-                [annotationContext.annotationView setCenter:center pitch:self.camera.pitch];
+                [annotationContext.annotationView setCenter:center direction:self.direction pitch:self.camera.pitch];
             }
             else
             {
@@ -4484,6 +4484,9 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
     
+    CLLocationDirection direction = self.direction;
+    CGFloat pitch = self.camera.pitch;
+    
     for (auto &pair : _annotationContextsByAnnotationTag)
     {
         CGRect viewPort = CGRectInset(self.bounds, -_largestAnnotationViewSize.width - MGLAnnotationUpdateViewportOutset.width, -_largestAnnotationViewSize.height - MGLAnnotationUpdateViewportOutset.width);
@@ -4503,7 +4506,7 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
                 }
                 
                 CGPoint center = [self convertCoordinate:annotationContext.annotation.coordinate toPointToView:self];
-                [annotationView setCenter:center pitch:self.camera.pitch];
+                [annotationView setCenter:center direction:direction pitch:pitch];
                 
                 annotationContext.annotationView = annotationView;
             }
@@ -4517,7 +4520,7 @@ mbgl::Duration MGLDurationInSeconds(NSTimeInterval duration)
         else
         {
             CGPoint center = [self convertCoordinate:annotationContext.annotation.coordinate toPointToView:self];
-            [annotationView setCenter:center pitch:self.camera.pitch];
+            [annotationView setCenter:center direction:direction pitch:pitch];
         }
     }
     

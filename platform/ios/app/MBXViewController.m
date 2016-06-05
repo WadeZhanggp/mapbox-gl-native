@@ -584,17 +584,17 @@ static NSString * const MBXViewControllerAnnotationViewReuseIdentifer = @"MBXVie
     if (!annotationView)
     {
         annotationView = [[MBXAnnotationView alloc] initWithReuseIdentifier:MBXViewControllerAnnotationViewReuseIdentifer];
-        annotationView.frame = CGRectMake(0, 0, 10, 10);
+        annotationView.frame = CGRectMake(0, 0, 30, 30);
         annotationView.centerColor = [UIColor whiteColor];
        
-        // uncomment to flatten the annotation view against the map when the map is tilted
+        // uncomment to lay the annotation view flat against the map when the map is tilted
         // this currently causes severe performance issues when more than 2k annotations are visible
-        // annotationView.flat = YES;
+//        annotationView.freeAxes = MGLAnnotationViewBillboardAxisY;
        
         // uncomment to force annotation view to maintain a constant size when the map is tilted
         // by default, annotation views will shrink and grow as the move towards and away from the
         // horizon. Relatedly, annotations backed by GL sprites ONLY scale with viewing distance currently.
-        // annotationView.scalesWithViewingDistance = NO;
+//        annotationView.scalesWithViewingDistance = NO;
         
     } else {
         // orange indicates that the annotation view was reused
