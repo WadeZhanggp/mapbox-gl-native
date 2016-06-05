@@ -39,15 +39,15 @@
 
 - (void)setCenter:(CGPoint)center
 {
-    [self setCenter:center pitch:-1];
+    center.x += _centerOffset.dx;
+    center.y += _centerOffset.dy;
+    
+    super.center = center;
 }
 
 - (void)setCenter:(CGPoint)center pitch:(CGFloat)pitch
 {
-    center.x += _centerOffset.dx;
-    center.y += _centerOffset.dy;
-    
-    [super setCenter:center];
+    self.center = center;
     
     if (pitch >= 0 && self.flat)
     {
