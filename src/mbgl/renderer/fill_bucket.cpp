@@ -1,4 +1,5 @@
 #include <mbgl/renderer/fill_bucket.hpp>
+#include <mbgl/renderer/fill_render_data.hpp>
 #include <mbgl/style/layers/fill_layer.hpp>
 #include <mbgl/renderer/painter.hpp>
 #include <mbgl/shader/plain_shader.hpp>
@@ -30,13 +31,19 @@ using namespace style;
 
 struct GeometryTooLongException : std::exception {};
 
-FillBucket::FillBucket() {
+FillBucket::FillBucket() : renderData(std::make_unique<FillRenderData>()) {
 }
 
 FillBucket::~FillBucket() {
 }
 
 void FillBucket::addGeometry(const GeometryCollection& geometry) {
+    auto& vertexBuffer = renderData->vertexBuffer;
+    auto& triangleElementsBuffer = renderData->triangleElementsBuffer;
+    auto& lineElementsBuffer = renderData->lineElementsBuffer;
+    auto& triangleGroups = renderData->triangleGroups;
+    auto& lineGroups = renderData->lineGroups;
+
     for (auto& polygon : classifyRings(geometry)) {
         // Optimize polygons with many interior rings for earcut tesselation.
         limitHoles(polygon, 500);
@@ -56,9 +63,9 @@ void FillBucket::addGeometry(const GeometryCollection& geometry) {
                 continue;
 
             if (lineGroups.empty() || lineGroups.back()->vertex_length + nVertices > 65535)
-                lineGroups.emplace_back(std::make_unique<LineGroup>());
+                lineGroups.emplace_back(std::make_unique<FillRenderData::LineGroup>());
 
-            LineGroup& lineGroup = *lineGroups.back();
+            auto& lineGroup = *lineGroups.back();
             GLsizei lineIndex = lineGroup.vertex_length;
 
             vertexBuffer.add(ring[0].x, ring[0].y);
@@ -79,10 +86,10 @@ void FillBucket::addGeometry(const GeometryCollection& geometry) {
         assert(nIndicies % 3 == 0);
 
         if (triangleGroups.empty() || triangleGroups.back()->vertex_length + totalVertices > 65535) {
-            triangleGroups.emplace_back(std::make_unique<TriangleGroup>());
+            triangleGroups.emplace_back(std::make_unique<FillRenderData::TriangleGroup>());
         }
 
-        TriangleGroup& triangleGroup = *triangleGroups.back();
+        auto& triangleGroup = *triangleGroups.back();
         GLsizei triangleIndex = triangleGroup.vertex_length;
 
         for (uint32_t i = 0; i < nIndicies; i += 3) {
@@ -97,9 +104,11 @@ void FillBucket::addGeometry(const GeometryCollection& geometry) {
 }
 
 void FillBucket::upload(gl::ObjectStore& store) {
-    vertexBuffer.upload(store);
-    triangleElementsBuffer.upload(store);
-    lineElementsBuffer.upload(store);
+    if (renderData) {
+        renderData->vertexBuffer.upload(store);
+        renderData->triangleElementsBuffer.upload(store);
+        renderData->lineElementsBuffer.upload(store);
+    }
 
     // From now on, we're going to render during the opaque and translucent pass.
     uploaded = true;
@@ -113,7 +122,7 @@ void FillBucket::render(Painter& painter,
 }
 
 bool FillBucket::hasData() const {
-    return !triangleGroups.empty() || !lineGroups.empty();
+    return renderData && (!renderData->triangleGroups.empty() || !renderData->lineGroups.empty());
 }
 
 bool FillBucket::needsClipping() const {
@@ -121,6 +130,13 @@ bool FillBucket::needsClipping() const {
 }
 
 void FillBucket::drawElements(PlainShader& shader, gl::ObjectStore& store) {
+    if (!renderData) {
+        return;
+    }
+    auto& vertexBuffer = renderData->vertexBuffer;
+    auto& triangleElementsBuffer = renderData->triangleElementsBuffer;
+    auto& triangleGroups = renderData->triangleGroups;
+
     GLbyte* vertex_index = BUFFER_OFFSET(0);
     GLbyte* elements_index = BUFFER_OFFSET(0);
     for (auto& group : triangleGroups) {
@@ -133,6 +149,13 @@ void FillBucket::drawElements(PlainShader& shader, gl::ObjectStore& store) {
 }
 
 void FillBucket::drawElements(PatternShader& shader, gl::ObjectStore& store) {
+    if (!renderData) {
+        return;
+    }
+    auto& vertexBuffer = renderData->vertexBuffer;
+    auto& triangleElementsBuffer = renderData->triangleElementsBuffer;
+    auto& triangleGroups = renderData->triangleGroups;
+
     GLbyte* vertex_index = BUFFER_OFFSET(0);
     GLbyte* elements_index = BUFFER_OFFSET(0);
     for (auto& group : triangleGroups) {
@@ -145,6 +168,13 @@ void FillBucket::drawElements(PatternShader& shader, gl::ObjectStore& store) {
 }
 
 void FillBucket::drawVertices(OutlineShader& shader, gl::ObjectStore& store) {
+    if (!renderData) {
+        return;
+    }
+    auto& vertexBuffer = renderData->vertexBuffer;
+    auto& lineElementsBuffer = renderData->lineElementsBuffer;
+    auto& lineGroups = renderData->lineGroups;
+
     GLbyte* vertex_index = BUFFER_OFFSET(0);
     GLbyte* elements_index = BUFFER_OFFSET(0);
     for (auto& group : lineGroups) {
@@ -157,6 +187,13 @@ void FillBucket::drawVertices(OutlineShader& shader, gl::ObjectStore& store) {
 }
 
 void FillBucket::drawVertices(OutlinePatternShader& shader, gl::ObjectStore& store) {
+    if (!renderData) {
+        return;
+    }
+    auto& vertexBuffer = renderData->vertexBuffer;
+    auto& lineElementsBuffer = renderData->lineElementsBuffer;
+    auto& lineGroups = renderData->lineGroups;
+
     GLbyte* vertex_index = BUFFER_OFFSET(0);
     GLbyte* elements_index = BUFFER_OFFSET(0);
     for (auto& group : lineGroups) {
@@ -168,4 +205,4 @@ void FillBucket::drawVertices(OutlinePatternShader& shader, gl::ObjectStore& sto
     }
 }
 
-}
+} // namespace mbgl

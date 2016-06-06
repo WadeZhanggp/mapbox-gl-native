@@ -1,4 +1,5 @@
 #include <mbgl/renderer/symbol_bucket.hpp>
+#include <mbgl/renderer/symbol_render_data.hpp>
 #include <mbgl/style/filter_evaluator.hpp>
 #include <mbgl/style/layers/symbol_layer.hpp>
 #include <mbgl/tile/geometry_tile.hpp>
@@ -456,7 +457,7 @@ void SymbolBucket::placeFeatures(CollisionTile& collisionTile) {
         if (hasText) {
             collisionTile.insertFeature(symbolInstance.textCollisionFeature, glyphScale, layout.textIgnorePlacement);
             if (glyphScale < collisionTile.maxScale) {
-                addSymbols<SymbolRenderData::TextBuffer, TextElementGroup>(
+                addSymbols<SymbolRenderData::TextBuffer, SymbolRenderData::TextElementGroup>(
                     renderDataInProgress->text, symbolInstance.glyphQuads, glyphScale,
                     layout.textKeepUpright, textAlongLine, collisionTile.config.angle);
             }
@@ -465,7 +466,7 @@ void SymbolBucket::placeFeatures(CollisionTile& collisionTile) {
         if (hasIcon) {
             collisionTile.insertFeature(symbolInstance.iconCollisionFeature, iconScale, layout.iconIgnorePlacement);
             if (iconScale < collisionTile.maxScale) {
-                addSymbols<SymbolRenderData::IconBuffer, IconElementGroup>(
+                addSymbols<SymbolRenderData::IconBuffer, SymbolRenderData::IconElementGroup>(
                     renderDataInProgress->icon, symbolInstance.iconQuads, iconScale,
                     layout.iconKeepUpright, iconAlongLine, collisionTile.config.angle);
             }
@@ -572,7 +573,8 @@ void SymbolBucket::addToDebugBuffers(CollisionTile &collisionTile) {
                 auto& collisionBox = renderDataInProgress->collisionBox;
                 if (collisionBox.groups.empty()) {
                     // Move to a new group because the old one can't hold the geometry.
-                    collisionBox.groups.emplace_back(std::make_unique<CollisionBoxElementGroup>());
+                    collisionBox.groups.emplace_back(
+                        std::make_unique<SymbolRenderData::CollisionBoxElementGroup>());
                 }
 
                 collisionBox.vertices.add(anchor.x, anchor.y, tl.x, tl.y, maxZoom, placementZoom);
