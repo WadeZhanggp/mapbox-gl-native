@@ -52,6 +52,11 @@
     CATransform3D t = CATransform3DIdentity;
     if (pitch >= 0 && (self.freeAxes & MGLAnnotationViewBillboardAxisX))
     {
+        // https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CoreAnimation_guide/AdvancedAnimationTricks/AdvancedAnimationTricks.html#//apple_ref/doc/uid/TP40004514-CH8-SW13
+        // FIXME: This is a rough, eyeballed value. Replace this transform with one derived from mbgl::TransformState::coordinatePointMatrix().
+        CGRect superBounds = self.superview.bounds;
+        t.m34 = -1.0 / (1000 - CGRectGetWidth(superBounds));
+        
         t = CATransform3DRotate(t, MGLRadiansFromDegrees(pitch), 1.0, 0, 0);
     }
     if (direction >= 0 && (self.freeAxes & MGLAnnotationViewBillboardAxisY))
@@ -59,7 +64,7 @@
         t = CATransform3DRotate(t, MGLRadiansFromDegrees(-direction), 0.0, 0.0, 1.0);
     }
     self.layer.transform = t;
-  
+    
     if (self.scalesWithViewingDistance)
     {
         [self updateScaleForPitch:pitch];
