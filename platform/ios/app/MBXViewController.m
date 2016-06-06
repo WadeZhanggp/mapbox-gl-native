@@ -585,7 +585,7 @@ static NSString * const MBXViewControllerAnnotationViewReuseIdentifer = @"MBXVie
     {
         annotationView = [[MBXAnnotationView alloc] initWithReuseIdentifier:MBXViewControllerAnnotationViewReuseIdentifer];
         annotationView.frame = CGRectMake(0, 0, 30, 30);
-        annotationView.centerColor = [UIColor whiteColor];
+        annotationView.backgroundColor = [UIColor whiteColor];
        
         // uncomment to lay the annotation view flat against the map when the map is tilted
         // this currently causes severe performance issues when more than 2k annotations are visible
@@ -598,7 +598,7 @@ static NSString * const MBXViewControllerAnnotationViewReuseIdentifer = @"MBXVie
         
     } else {
         // orange indicates that the annotation view was reused
-        annotationView.centerColor = [UIColor orangeColor];
+        annotationView.backgroundColor = [UIColor orangeColor];
     }
     return annotationView;
 }
