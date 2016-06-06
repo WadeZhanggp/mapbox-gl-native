@@ -118,10 +118,10 @@ public class Marker extends Annotation {
     }
 
     /**
-     * Update default InfoWindowAdapter content for Title and Snippet
+     * Update only for default Marker's InfoWindow content for Title and Snippet
      */
     private void refreshInfoWindowContent() {
-        if (isInfoWindowShown() && mapView != null) {
+        if (isInfoWindowShown() && mapView != null  && mapboxMap != null && mapboxMap.getInfoWindowAdapter() == null) {
             InfoWindow infoWindow = getInfoWindow(mapView);
             if (mapView.getContext() != null) {
                 infoWindow.adaptDefaultMarker(this, mapboxMap, mapView);
