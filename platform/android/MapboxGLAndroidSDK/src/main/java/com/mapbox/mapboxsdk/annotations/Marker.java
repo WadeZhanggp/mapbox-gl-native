@@ -91,7 +91,7 @@ public class Marker extends Annotation {
         }
     }
 
-    void setSnippet(String snippet) {
+    public void setSnippet(String snippet) {
         this.snippet = snippet;
     }
 
@@ -112,7 +112,7 @@ public class Marker extends Annotation {
         return icon;
     }
 
-    void setTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
